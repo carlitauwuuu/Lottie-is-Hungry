@@ -30,9 +30,9 @@ public class GridManager : MonoBehaviour
     [SerializeField] private List <NenufData> _nenufData;
     [SerializeField] private List<RockData> _rockData;
 
-    private Dictionary<Vector2, Tile> _tiles;
-    private Dictionary<Vector2, GameObject> _nenufars;
-    private Dictionary<Vector2, GameObject> _rocks;
+    private Dictionary<Vector2Int, Tile> _tiles;
+    private Dictionary<Vector2Int, GameObject> _nenufars;
+    private Dictionary<Vector2Int, GameObject> _rocks;
 
     void Start()
     {
@@ -41,9 +41,9 @@ public class GridManager : MonoBehaviour
 
     void GenerateGrid()
     {
-        _tiles = new Dictionary<Vector2, Tile>();
-        _nenufars = new Dictionary<Vector2, GameObject>();
-        _rocks = new Dictionary<Vector2, GameObject>();
+    _tiles = new Dictionary<Vector2Int, Tile>();
+    _nenufars = new Dictionary<Vector2Int, GameObject>();
+    _rocks = new Dictionary<Vector2Int, GameObject>();
 
         for (int x = 0; x < _width; x++)
         {
@@ -55,8 +55,7 @@ public class GridManager : MonoBehaviour
                 var isOffset = (x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0);
                 spawnedTile.Init(isOffset);
 
-
-                _tiles[new Vector2(x, y)] = spawnedTile;
+                _tiles[new Vector2Int(x, y)] = spawnedTile;
             }
         }
 
@@ -72,39 +71,63 @@ public class GridManager : MonoBehaviour
         {
             SpawnNenufar(nenufData.position);
         }
-
-
     }
 
     void SpawnNenufar(Vector2 pos)
     {
-        var nenufObj = Instantiate(_nenufarPrefab, pos, Quaternion.identity);
-
-        //var nenufar = nenufObj.GetComponent<Nenufar>();
-
-        _nenufars[pos] = nenufObj;
+        Vector2Int gridPos = Vector2Int.RoundToInt(pos);
+        var nenufObj = Instantiate(_nenufarPrefab, (Vector2)gridPos, Quaternion.identity);
+        _nenufars[gridPos] = nenufObj;
     }
 
     void SpawnRock(Vector2 pos)
     {
-        var rockObj = Instantiate(_rockPrefab, pos, Quaternion.identity);
-
-        _rocks[pos] = rockObj;
+        Vector2Int gridPos = Vector2Int.RoundToInt(pos);
+        var rockObj = Instantiate(_rockPrefab, (Vector2)gridPos, Quaternion.identity);
+        _rocks[gridPos] = rockObj;
     }
 
-    public Tile GetTileAtPosition(Vector2 pos)
+        public Tile GetTileAtPosition(Vector2Int pos)
     {
         if (_tiles.TryGetValue(pos, out var tile)) return tile;
         return null;
     }
 
-    public bool HasRockAtPosition(Vector2 pos)
+    public bool HasRockAtPosition(Vector2Int pos)
     {
         return _rocks.ContainsKey(pos);
     }
 
-    public bool HasNenufarAtPosition(Vector2 pos)
+        public bool HasNenufarAtPosition(Vector2Int pos)
     {
         return _nenufars.ContainsKey(pos);
+    }
+
+    public GameObject GetNenufarAtPosition(Vector2Int pos)
+    {
+        if (_nenufars.TryGetValue(pos, out var nenufar))
+            return nenufar;
+
+        return null;
+    }
+
+    public void MoveNenufar(Vector2Int oldPos, Vector2Int newPos)
+    {
+        if (_nenufars.TryGetValue(oldPos, out var nenufar))
+        {
+            _nenufars.Remove(oldPos);
+            _nenufars[newPos] = nenufar;
+        }
+    }
+
+    public Vector2Int GetNenufarPosition(GameObject nenufar)
+    {
+        foreach (var pair in _nenufars)
+        {
+            if (pair.Value == nenufar)
+                return pair.Key;
+        }
+
+        return Vector2Int.zero;
     }
 }

@@ -1,7 +1,7 @@
-using UnityEngine;
+/* using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController02 : MonoBehaviour
 {
     private GridManager _gridManager;
     private GameObject _currentNenufar;
@@ -67,77 +67,62 @@ public class PlayerController : MonoBehaviour
 
     void Move(Vector2 direction)
     {
-        Vector2Int currentPos = Vector2Int.RoundToInt(transform.position);
         Vector2Int dir = Vector2Int.RoundToInt(direction);
+        Vector2Int currentPos = Vector2Int.RoundToInt(transform.position);
 
-        Vector2Int targetPos = currentPos + dir;
-        Vector2Int nextPos = targetPos + dir;
+        Vector2Int target = currentPos + dir;
 
-        if (_gridManager.GetTileAtPosition(targetPos) == null)
+        if (!_gridManager.InBounds(target))
             return;
 
-        bool hasNenufar = _gridManager.HasNenufarAtPosition(targetPos);
+        GameObject nenufar = _gridManager.GetNenufarAt(target);
 
-        // 🟢 CASO 1: HAY NENÚFAR (subirse + posible empuje)
-        if (hasNenufar)
+        // ❌ vacío o agua
+        if (nenufar == null)
         {
-            GameObject n = _gridManager.GetNenufarAtPosition(targetPos);
-
-            if (n == null)
-                return;
-
-            // 👉 guardar referencia para follow
-            _currentNenufar = n;
-
-            // 👉 activar auto-movimiento SOLO si quieres esa casilla especial
-            // (luego puedes hacerlo por tag o data)
-            if (IsAutoZone(targetPos))
-                _ridingAutoMove = true;
-
-            // ❌ si no puede empujar, solo subirse
-            if (_gridManager.GetTileAtPosition(nextPos) == null ||
-                _gridManager.HasRockAtPosition(nextPos) ||
-                _gridManager.HasNenufarAtPosition(nextPos))
-            {
-                transform.position = n.transform.position;
-                return;
-            }
-
-            // calcular cuánto puede avanzar el nenúfar
-            int steps = CalculateTrip(targetPos, dir);
-
-            // si no puede moverse
-            if (steps <= 0)
-            {
-                transform.position = n.transform.position;
-                return;
-            }
-
-            // nueva posición final del nenúfar
-            Vector2Int finalPos = targetPos + dir * steps;
-
-            // mover nenúfar (GRID primero)
-            _gridManager.MoveNenufar(targetPos, finalPos);
-            n.transform.position = new Vector3(finalPos.x, finalPos.y, n.transform.position.z);
-
-            // player se sube a la casilla inicial del nenúfar
-            transform.position = new Vector3(targetPos.x, targetPos.y, transform.position.z);
-
+            transform.position = target;
             return;
         }
 
-        //  CASO 2: SIN NENÚFAR
-        _currentNenufar = null;
-        _ridingAutoMove = false;
+        // 🟢 HAY NENUFAR → calcular cuánto puede moverse
+        Vector2Int finalPos = CalculatePush(target, dir);
 
-        transform.position = new Vector3(targetPos.x, targetPos.y, transform.position.z);
-
-        //  agua mata
-        if (!_gridManager.HasNenufarAtPosition(targetPos) && !_gridManager.HasRockAtPosition(targetPos))
+        // si no hay espacio
+        if (finalPos == target)
         {
-            touchedWater = true;
-            _renderer.color = _deathmark;
+            transform.position = target;
+            return;
         }
+
+        // mover nenúfar
+        nenufar.transform.position = new Vector3(finalPos.x, finalPos.y, 0);
+
+        // mover player encima del primer paso
+        transform.position = target;
+    }
+
+
+    Vector2Int CalculatePush(Vector2Int start, Vector2Int dir)
+    {
+        Vector2Int pos = start;
+
+        while (true)
+        {
+            Vector2Int next = pos + dir;
+
+            if (!_gridManager.InBounds(next))
+                break;
+
+            if (_gridManager.HasRock(next))
+                break;
+
+            if (_gridManager.HasNenufar(next))
+                break;
+
+            pos = next;
+        }
+
+        return pos;
     }
 
     int CalculateTrip(Vector2Int startPos, Vector2Int dir)
@@ -225,7 +210,8 @@ public class PlayerController : MonoBehaviour
         _gridManager.MoveNenufar(currentPos, newPos);
 
         // 🔥 3. MOVER VISUAL
-        _currentNenufar.transform.position = new Vector3(newPos.x, newPos.y, _currentNenufar.transform.position.z);
+        _currentNenufar.transform.position = new Vector3(newPos.x, newPos.y, 0);
+
         // 🔥 4. PLAYER SIGUE
         transform.position = _currentNenufar.transform.position;
     }
@@ -236,4 +222,4 @@ public class PlayerController : MonoBehaviour
         return pos == new Vector2Int(2, 2);
     }
 
-}
+}  */
