@@ -9,7 +9,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Color _deathmark;
     [SerializeField] private SpriteRenderer _renderer;
 
+    [SerializeField] private float _maxNenufarIdleTime = 10f;
+
+    private float _nenufarIdleTimer = 0f;
+    private GameObject _lastNenufar;
+
     public bool touchedWater;
+    public bool touchedFly;
 
     void Start()
     {
@@ -19,6 +25,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        CheckVictory();
 
         Vector2 moveDir = Vector2.zero; // ------------------ SECCIÓN MOVIMIENTO
 
@@ -37,6 +44,7 @@ public class PlayerController : MonoBehaviour
 
         if (moveDir != Vector2.zero)
         {
+            ResetNenufarTimer();
             Move(moveDir);
         }
 
@@ -56,14 +64,21 @@ public class PlayerController : MonoBehaviour
 
         if (toungueDir != Vector2.zero)
         {
+            ResetNenufarTimer();
             Toungue(toungueDir);
         }
 
         FollowNenufar(); // ---------------- movimiento CON NENUFAR
         HandleAutoNenufar(); // ----------- ni idea
 
+        HandleNenufarIdle();
+
     }
 
+    void ResetNenufarTimer()
+    {
+        _nenufarIdleTimer = 0f;
+    }
 
     void Move(Vector2 direction)
     {
@@ -83,7 +98,7 @@ public class PlayerController : MonoBehaviour
         {
             GameObject n = _gridManager.GetNenufarAtPosition(targetPos);
 
-            if (n == null)
+            if (n == null || touchedFly)
                 return;
 
             // 👉 guardar referencia para follow
@@ -201,6 +216,16 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    void CheckVictory()
+    {
+        Vector2Int position = Vector2Int.RoundToInt(transform.position);
+        if (_gridManager.HasFlyAtPosition(position))
+        touchedFly = true;
+
+        else
+        return;
+    }
+
     void HandleAutoNenufar()
     {
         if (!_ridingAutoMove || _currentNenufar == null)
@@ -235,5 +260,46 @@ public class PlayerController : MonoBehaviour
         // por ahora hardcoded, luego lo puedes mejorar
         return pos == new Vector2Int(2, 2);
     }
+
+    void HandleNenufarIdle()
+{
+    if (_currentNenufar == null)
+    {
+        _nenufarIdleTimer = 0f;
+        _lastNenufar = null;
+        return;
+    }
+
+    // Si cambiamos de nenúfar, reset
+    if (_currentNenufar != _lastNenufar)
+    {
+        _nenufarIdleTimer = 0f;
+        _lastNenufar = _currentNenufar;
+        return;
+    }
+
+    // Contar tiempo
+    _nenufarIdleTimer += Time.deltaTime;
+
+    if (_nenufarIdleTimer >= _maxNenufarIdleTime)
+    {
+        Vector2Int pos = _gridManager.GetNenufarPosition(_currentNenufar);
+
+        // quitar del grid
+        _gridManager.RemoveNenufar(pos);
+
+        // destruir objeto
+        Destroy(_currentNenufar);
+
+        // reset estado
+        _currentNenufar = null;
+        _lastNenufar = null;
+        _nenufarIdleTimer = 0f;
+
+        // el jugador cae al agua
+        touchedWater = true;
+        _renderer.color = _deathmark;
+    }
+}
 
 }

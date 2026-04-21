@@ -105,3 +105,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   _deathmark: {r: 1, g: 0, b: 0, a: 0.5254902}
   _renderer: {fileID: 1555533384438241658}
+  _maxNenufarIdleTime: 3
+  touchedWater: 0
+  touchedFly: 0

@@ -27,7 +27,7 @@ public class GridManager : MonoBehaviour
     [SerializeField] private GameObject _playerPrefab;
 
 
-    [SerializeField] private List <NenufData> _nenufData;
+    [SerializeField] private List<NenufData> _nenufData;
     [SerializeField] private List<RockData> _rockData;
 
     private Dictionary<Vector2Int, Tile> _tiles;
@@ -41,9 +41,9 @@ public class GridManager : MonoBehaviour
 
     void GenerateGrid()
     {
-    _tiles = new Dictionary<Vector2Int, Tile>();
-    _nenufars = new Dictionary<Vector2Int, GameObject>();
-    _rocks = new Dictionary<Vector2Int, GameObject>();
+        _tiles = new Dictionary<Vector2Int, Tile>();
+        _nenufars = new Dictionary<Vector2Int, GameObject>();
+        _rocks = new Dictionary<Vector2Int, GameObject>();
 
         for (int x = 0; x < _width; x++)
         {
@@ -87,7 +87,7 @@ public class GridManager : MonoBehaviour
         _rocks[gridPos] = rockObj;
     }
 
-        public Tile GetTileAtPosition(Vector2Int pos)
+    public Tile GetTileAtPosition(Vector2Int pos)
     {
         if (_tiles.TryGetValue(pos, out var tile)) return tile;
         return null;
@@ -98,9 +98,14 @@ public class GridManager : MonoBehaviour
         return _rocks.ContainsKey(pos);
     }
 
-        public bool HasNenufarAtPosition(Vector2Int pos)
+    public bool HasNenufarAtPosition(Vector2Int pos)
     {
         return _nenufars.ContainsKey(pos);
+    }
+
+    public bool HasFlyAtPosition(Vector2Int pos)
+    {
+        return _flyPos == pos;
     }
 
     public GameObject GetNenufarAtPosition(Vector2Int pos)
@@ -129,5 +134,16 @@ public class GridManager : MonoBehaviour
         }
 
         return Vector2Int.zero;
+    }
+
+    public void RemoveNenufar(Vector2Int pos)
+    {
+        if (!_nenufars.ContainsKey(pos))
+        {
+            Debug.LogWarning("Intentando eliminar un nenúfar que no existe en " + pos);
+            return;
+        }
+
+        _nenufars.Remove(pos);
     }
 }

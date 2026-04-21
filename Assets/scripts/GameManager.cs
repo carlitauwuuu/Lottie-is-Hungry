@@ -6,8 +6,10 @@ public class GameManager : MonoBehaviour
 {
     private PlayerController _playerControler;
     [SerializeField] private float restartTime;
+    [SerializeField] private float skipTime;
 
     private bool _isRestarting = false;
+        private bool _isSkipping = false;
 
     IEnumerator Start()
     {
@@ -33,6 +35,12 @@ public class GameManager : MonoBehaviour
             _isRestarting = true;
             StartCoroutine(RestartAfterDelay());
         }
+
+        if (_playerControler.touchedFly && !_isSkipping)
+        {
+            _isSkipping = true;
+            StartCoroutine(NextLevel());
+        }
     }
 
     IEnumerator RestartAfterDelay()
@@ -40,6 +48,13 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(restartTime);
         Debug.Log("Ha muerto!");
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    IEnumerator NextLevel()
+    {
+        yield return new WaitForSeconds(skipTime);
+        Debug.Log("Ha ganado!");
+        SceneManager.LoadScene (SceneManager.GetActiveScene().buildIndex + 1);
     }
 
 }
